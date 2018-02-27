@@ -221,6 +221,14 @@ public class IOException extends Exception
     }
 }
 ```
+这是为了能够传递异常信息，如
+```java
+try{
+	process();
+} catch (IOException e){
+	throw new BaseException("IOError",e);
+}
+```
 ## finally块和return
 首先一个不容易理解的事实：在 try块中即便有return，break，continue等改变执行流的语句，finally也会执行。
 
