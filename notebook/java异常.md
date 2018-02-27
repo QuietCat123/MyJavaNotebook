@@ -162,6 +162,77 @@ public void save(User user)
 在一些模块化的软件开发中，一旦一个地方发生异常，将导致一连串的异常。假设B模块完成自己的逻辑需要调用A模块的方法，如果A模块发生异常，则B也将不能完成而发生异常，但是B在抛出异常时，会将A的异常信息掩盖掉，这将使得异常的根源信息丢失。
 异常的链化可以将多个模块的异常串联起来，使得异常信息不会丢失。
 
+**异常链化:以一个异常对象为参数构造新的异常对象**。新的异常对象将包含先前异常的信息。这项技术主要是异常类的一个带Throwable参数的函数来实现的。这个当做参数的异常，我们叫他根源异常（cause）。
+
+查看Throwable类源码，可以发现里面有一个Throwable字段cause，就是它保存了构造时传递的根源异常参数。**这种设计和链表的结点类设计如出一辙**，因此形成链也是自然的了。
+
+``` java
+public class Throwable implements Serializable {
+    private Throwable cause = this;
+   
+    public Throwable(String message, Throwable cause) {
+        fillInStackTrace();
+        detailMessage = message;
+        this.cause = cause;
+    }
+     public Throwable(Throwable cause) {
+        fillInStackTrace();
+        detailMessage = (cause==null ? null : cause.toString());
+        this.cause = cause;
+    }
+    
+    //........
+} 
+```
+## 自定义异常
+如果要自定义异常类，则扩展Exception类即可，因此这样的自定义异常都属于检查异常（checked exception）。如果要自定义非检查异常，则扩展自RuntimeException。
+
+按照国际惯例，自定义的异常应该总是包含如下的构造函数：
+
+ - 一个无参构造函数
+ - 一个带有String参数的构造函数，并传递给父类的构造函数。
+ - 一个带有String参数和Throwable参数，并都传递给父类构造函数 一个带有Throwable
+ - 参数的构造函数，并传递给父类的构造函数。
+例如IOException的源代码作为参考
+``` java
+public class IOException extends Exception
+{
+    static final long serialVersionUID = 7818375828146090155L;
+
+    public IOException()
+    {
+        super();
+    }
+
+    public IOException(String message)
+    {
+        super(message);
+    }
+
+    public IOException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
+    
+    public IOException(Throwable cause)
+    {
+        super(cause);
+    }
+}
+```
+## finally块和return
+首先一个不容易理解的事实：在 try块中即便有return，break，continue等改变执行流的语句，finally也会执行。
+
+省略（）
+
+上面的3个例子都异于常人的编码思维，因此我建议：
+
+*   不要在fianlly中使用return。
+*   不要在finally中抛出异常。
+*   减轻finally的任务，不要在finally中做一些其它的事情，finally块仅仅用来释放资源是最合适的。
+*   将尽量将所有的return写在函数的最后面，而不是try ... catch ... finally中。
+
 打印方法调用栈：printStackTrace()
 
 用throw语句抛出异常
