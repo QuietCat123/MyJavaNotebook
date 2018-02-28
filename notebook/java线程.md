@@ -620,6 +620,465 @@ public class Main {
 ```
 适合一个实例，有大量线程读取，仅有少量修改
 
+### Condition对象
+Condition
+Condition.await/signal/signalAll原理和synchronized + wait / notify一致
+
+Condition对象必须从ReentrantLock对象获取
+```
+package com.feiyangedu.sample;
+
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class TaskQueue {
+
+	final Queue<String> queue = new LinkedList<>();
+
+	final Lock lock = new ReentrantLock();
+	final Condition notEmpty = lock.newCondition(); //创建Condition对象lock.newCondition()
+
+	public String getTask() throws InterruptedException {
+		lock.lock();
+		try {
+			while (this.queue.isEmpty()) {
+				notEmpty.await(); //使Condition对象await实现释放锁，进入等待状态。
+			}
+			return queue.remove();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public void addTask(String name) {
+		lock.lock();
+		try {
+			this.queue.add(name);
+			notEmpty.signalAll(); //而sganalAll则相当于this.notifyAll()
+		} finally {
+			lock.unlock();
+		}
+	}
+}
+
+class WorkerThread extends Thread {
+	TaskQueue taskQueue;
+
+	public WorkerThread(TaskQueue taskQueue) {
+		this.taskQueue = taskQueue;
+	}
+
+	public void run() {
+		while (!isInterrupted()) {
+			String name;
+			try {
+				name = taskQueue.getTask();
+			} catch (InterruptedException e) {
+				break;
+			}
+			String result = "Hello, " + name + "!";
+			System.out.println(result);
+		}
+	}
+}
+
+public class Main {
+
+	public static void main(String[] args) throws Exception {
+		TaskQueue taskQueue = new TaskQueue();
+		WorkerThread worker = new WorkerThread(taskQueue);
+		worker.start();
+		// add task:
+		taskQueue.addTask("Bob");
+		Thread.sleep(1000);
+		taskQueue.addTask("Alice");
+		Thread.sleep(1000);
+		taskQueue.addTask("Tim");
+		Thread.sleep(1000);
+		worker.interrupt();
+		worker.join();
+		System.out.println("END");
+	}
+}
+
+```
+ReentrantLock＋Condition可以替代synchronized + wait / notify
+## Concurrent集合
+ReentrantLock+Condition实现Blocking Queue
+java.util.concurrent提供了线程安全的集合……
+```java
+package com.feiyangedu.sample;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+class WorkerThread extends Thread {
+	BlockingQueue<String> taskQueue;
+
+	public WorkerThread(BlockingQueue<String> taskQueue) {
+		this.taskQueue = taskQueue;
+	}
+
+	public void run() {
+		while (!isInterrupted()) {
+			String name;
+			try {
+				name = taskQueue.take();
+			} catch (InterruptedException e) {
+				break;
+			}
+			String result = "Hello, " + name + "!";
+			System.out.println(result);
+		}
+	}
+}
+
+public class Main {
+
+	public static void main(String[] args) throws Exception {
+		BlockingQueue<String> taskQueue = new ArrayBlockingQueue<>(100);
+		WorkerThread worker = new WorkerThread(taskQueue);
+		worker.start();
+		// add task:
+		taskQueue.put("Bob");
+		Thread.sleep(1000);
+		taskQueue.put("Alice");
+		Thread.sleep(1000);
+		taskQueue.put("Tim");
+		Thread.sleep(1000);
+		worker.interrupt();
+		worker.join();
+		System.out.println("END");
+	}
+}
+```
+CopyOnWriteArrayList
+ConcurrentHashMap
+CopyOnWriteArraySet
+ArrayBlockingQueue
+LinkedBlockingQueue
+LinkedBlockingDeque
+
+## Atomic
+无锁实现有锁
+使用java.util.atomic提供的原子操作可以简化多线程编程：
+
+AtomicInteger／AtomicLong／AtomicIntegerArray等
+
+原子操作实现了无锁的线程安全
+
+适用于计数器，累加器等
+
+## ExecutorService
+复用线程
+* 线程池维护若干个线程，处于等待状态
+* 如果有新任务就分配一个空闲线程
+* 所有线程都忙碌就将先任务放入队列等待
+
+JDK提供了ExecutorService实现了线程池功能
+//submit,提交
+```
+ExecutorService executor = ExecutoeServicenewFixedThreadPool(4);//固定大小的线程池
+executor.submit(task1);//提交一个任务到线程池
+executor.submit(task2);
+...
+```
+常用ExecutorService：
+* FixedThreadPool：线程数固定
+* CachedThreadPool：线程数根据任务动态调整
+* SingleThreadExecutor：仅单线程执行
+
+必须调用shutdown()关闭ExecutorService
+ScheduledThreadPool可以定期调度多个任务（可取代Timer）
+
+## Future
+Callable<T>接口
+Future<V>接口
+get()
+get(long timeout,TimeUnit unit)
+cancel(boolean mayInterruptIfRunning)
+isDone()
+
+``` java
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+class DownloadTask implements Callable<String> {
+	String url;
+
+	public DownloadTask(String url) {
+		this.url = url;
+	}
+
+	public String call() throws Exception {
+		System.out.println("Start download " + url + "...");
+		URLConnection conn = new URL(this.url).openConnection();
+		conn.connect();
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+			String s = null;
+			StringBuilder sb = new StringBuilder();
+			while ((s = reader.readLine()) != null) {
+				sb.append(s).append("\n");
+			}
+			return sb.toString();
+		}
+	}
+}
+
+public class Main {
+
+	public static void main(String[] args) throws Exception {
+		ExecutorService executor = Executors.newFixedThreadPool(3);
+		DownloadTask task = new DownloadTask("http://www.sina.com.cn/");
+		Future<String> future = executor.submit(task);
+		String html = future.get();
+		System.out.println(html);
+		executor.shutdown();
+	}
+}
+
+```
+![enter description here][7]
+提交Callable任务，可以获得一个Future对象
+可以用Future在将来某个时刻获取结果
+
+## CompletableFuture
+CompletableFuture的优点：
+
+异步任务结束时，会自动回调某个对象的方法
+异步任务出错时，会自动回调某个对象的方法
+主线程设置好回调后，不再关心异步任务的执行
+![enter description here][8]
+
+``` java
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+class StockSupplier implements Supplier<Float> {
+
+	@Override
+	public Float get() {
+		String url = "http://hq.sinajs.cn/list=sh000001";
+		System.out.println("GET: " + url);
+		try {
+			String result = DownloadUtil.download(url);
+			String[] ss = result.split(",");
+			return Float.parseFloat(ss[3]);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+}
+
+public class CompletableFutureSample {
+
+	public static void main(String[] args) throws Exception {
+		CompletableFuture<Float> getStockFuture = CompletableFuture.supplyAsync(new StockSupplier());
+		getStockFuture.thenAccept(new Consumer<Float>() {
+			@Override
+			public void accept(Float price) {
+				System.out.println("Current price: " + price);
+			}
+		});
+		getStockFuture.exceptionally(new Function<Throwable, Float>() {
+			@Override
+			public Float apply(Throwable t) {
+				System.out.println("Error: " + t.getMessage());
+				return Float.NaN;
+			}
+		});
+		getStockFuture.join();
+	}
+
+}
+```
+![enter description here][9]
+
+```java
+package com.feiyangedu.sample;
+
+import java.net.URLEncoder;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+class Price {
+	final String code;
+	final float price;
+
+	Price(String code, float price) {
+		this.code = code;
+		this.price = price;
+	}
+}
+
+class StockLookupSupplier implements Supplier<String> {
+	String name;
+
+	public StockLookupSupplier(String name) {
+		this.name = name;
+	}
+
+	public String get() {
+		System.out.println("lookup: " + name);
+		try {
+			String url = "http://suggest3.sinajs.cn/suggest/type=11,12&key=" + URLEncoder.encode(name, "UTF-8");
+			String result = DownloadUtil.download(url);
+			String[] ss = result.split(",");
+			return ss[3];
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+}
+
+public class CompletableFutureSequenceSample {
+
+	public static void main(String[] args) throws Exception {
+		String name = "上证指数";
+		CompletableFuture<String> getStockCodeFuture = CompletableFuture.supplyAsync(new StockLookupSupplier(name));
+		CompletableFuture<Price> getStockPriceFuture = getStockCodeFuture.thenApplyAsync(new Function<String, Price>() {
+			public Price apply(String code) {
+				System.out.println("got code: " + code);
+				try {
+					String url = "http://hq.sinajs.cn/list=" + code;
+					String result = DownloadUtil.download(url);
+					String[] ss = result.split(",");
+					return new Price(code, Float.parseFloat(ss[3]));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		getStockPriceFuture.thenAccept(new Consumer<Price>() {
+			public void accept(Price p) {
+				System.out.println(p.code + ": " + p.price);
+			}
+		});
+		getStockPriceFuture.join();
+	}
+}
+
+```
+![enter description here][10]
+
+```java
+package com.feiyangedu.sample;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+class StockPrice {
+	final float price;
+	final String from;
+
+	StockPrice(float price, String from) {
+		this.price = price;
+		this.from = from;
+	}
+
+	public String toString() {
+		return "Price: " + price + " from " + from;
+	}
+}
+
+class StockFromSina implements Supplier<StockPrice> {
+
+	@Override
+	public StockPrice get() {
+		String url = "http://hq.sinajs.cn/list=sh000001";
+		System.out.println("GET: " + url);
+		try {
+			String result = DownloadUtil.download(url);
+			String[] ss = result.split(",");
+			return new StockPrice(Float.parseFloat(ss[3]), "sina");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+}
+
+class StockFromNetease implements Supplier<StockPrice> {
+
+	@Override
+	public StockPrice get() {
+		String url = "http://api.money.126.net/data/feed/0000001,money.api";
+		System.out.println("GET: " + url);
+		try {
+			String result = DownloadUtil.download(url);
+			int priceIndex = result.indexOf("\"price\"");
+			int start = result.indexOf(":", priceIndex);
+			int end = result.indexOf(",", priceIndex);
+			return new StockPrice(Float.parseFloat(result.substring(start + 1, end)), "netease");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+}
+
+public class CompletableFutureAnyOfSample {
+
+	public static void main(String[] args) throws Exception {
+		CompletableFuture<StockPrice> getStockFromSina = CompletableFuture.supplyAsync(new StockFromSina());
+		CompletableFuture<StockPrice> getStockFromNetease = CompletableFuture.supplyAsync(new StockFromNetease());
+		CompletableFuture<Object> getStock = CompletableFuture.anyOf(getStockFromSina, getStockFromNetease);
+		\\CompletableFuture<Void> getStock = CompletableFuture.allOf(getStockFromSina, getStockFromNetease);
+
+		getStock.thenAccept(new Consumer<Object>() {
+			public void accept(Object result) {
+				System.out.println("Reuslt: " + result);
+			}
+		});
+		getStock.join();//在前两个对象任意一个完成时就调用geStock
+	}
+
+}
+
+```
+CompletableFuture对象可以指定异步处理流程：
+
+* thenAccept()处理正常结果
+* exceptional()处理异常结果
+* thenApplyAsync() 用于串行化另一个CompletableFuture
+* anyOf / allOf 用于并行化两个CompletableFuture
+
+## Fork/Join
+Fork/Join是一种基于“分治”的算法：分解任务＋合并结果
+
+ForkJoinPool线程池可以把一个大任务分拆成小任务并行执行
+比如将一个大数组拆成几个小数组……
+
+任务类必须继承自RecursiveTask／RecursiveAction
+![enter description here][11]
+![enter description here][12]
+使用Fork/Join模式可以进行并行计算提高效率
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -632,3 +1091,9 @@ public class Main {
   [4]: ./images/%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A51.png "线程同步1"
   [5]: ./images/JAVA%E6%AD%BB%E9%94%81.png "JAVA死锁"
   [6]: ./images/JAVAwait%E5%92%8CNotify.png "JAVAwait和Notify"
+  [7]: ./images/JAVA%20FUTURE.png "JAVA FUTURE"
+  [8]: ./images/JAVA%20CompletableFuture.png "JAVA CompletableFuture"
+  [9]: ./images/JAVACompletableFuture.png "JAVACompletableFuture"
+  [10]: ./images/JAVACompletableFuture2.png "JAVACompletableFuture2"
+  [11]: ./images/JAVAForkJoin.png "JAVAForkJoin"
+  [12]: ./images/JAVAForkJoin2.png "JAVAForkJoin2"
