@@ -116,16 +116,121 @@ td指 Table Data
 </body>
 </html>
 ```
-### 表单标签
+### 表单标签\<form>
+表单标签是允许用户在表单中(例如文字域,下拉列表.单选框,复选框等)输入信息元素,表单使用标签\<form>定义
+```HTML
+< form action = "跳转页面" method = "get"|"post" name = "表单名称" target  = "打开方式" enctype = "multipart/form - data">
+表单数据项部分
+</form>
+```
+* action属性是提交表单后跳转的目标页面,
+* method的取值为get或Post,默认为get.用get方式提交的信息会显示到地址栏,post方式提交则不会.
+* target属性指定打开的目标页面方式,其值可以为\_blank/\_parent等
+* enctype,用于表单具有上传功能时,且属性值为multipart/form=data,可选属性
 
+### 输入域标签\<input>
+在表单\<form>中使用
+`< input type = "类型" name = "输入项名称" value="输入项值"/>`
+type可以取
+* text:表示单行文本框
+* radio:单选框,可以用check属性等
+* hidden:表示输入界面不可见,表单直接将\<input>中的value属性提交各服务器
+* password:密码输入
+* file文件上传,则\<form>中还要设置enctype属性为"multipart/form-data"
+* checkbox:复选框,支持多选
+* email 提交表单时进行email合法性校验
+* url 同理,url校验
+* number 通过min,max设置接受范围
+* range 一定范围内数字值输入域,外观为滑动条,min,max
+* data pickers(date,month,week,time,datetime,datetime-locak),其中Imput值可以为括号中任意一个
+* search搜索
+* submit,提交按钮,单击后服务器可获取提交的数据
+* reset,重置按钮,清空表单数据项.
 
+### 下拉列表标签\<select>和选项标签\<option>
+表单中使用
+```
+<select>
+<option value = "value1">选项1</option>
+<option value = "value2">选项2</option>
+</select>
+```
+### 文本域标签\<textarea>
+表单中使用,用于输入多行文本
+`<textarea rows="行数"cols="列数" name ="名称">文本内容</textarea>`
+### 块标签\<div>
+将文档分割为独立的不同的部分.
+```
+<div position=absolute|relative visibility=visible|hidden|inherit top="像素:right="pixiv"bottom="pixiv"left=""margin="pixiv"height="p"width="p">
+文本块
+</div>
+```
+### 超链接标签\<a>
+```
+<a href="目标页面"target="打开方式">超链接名称或图片</a>
+```
+target:
+* _self默认,当前浏览器窗口
+* _blank新浏览器窗口
+* _parent _top frmename用于框架,父窗体,整个页面,指定页面framename中打开目标页面
 
+## HTML注释
+`<! -- 这是HTML注释 -->`
 
+# CSS样式表
+html负责内容的展示,CSS负责内容样式的定义.通过HTML的代码以你用独立的css样式表,可以使内容和样式分离.CSS使一种能够真正做到网页表现与内容分离的样式设计语言.相对于传统HTML的表现而言更绚丽……()
+## CSS样式表的定义和引用
+### CSS样式表的定义形式
+CSS样式表是针对指定对象进行样式修饰的:
+```css
+div{
+	margin:10px;
+	background:#FFF;
+	text - align:center;
+}
+```
+修饰的是\<div>元素,二margin等表示属性……
+对象最为重要,选择器(selector)来指定对象.定义选择器的语法格式如下.
+```css
+selector{
+属性1:属性值1
+}
+```
+### 样式表的引用
+4种方法:链接外部,内部,导入内部样式表,内嵌样式
+1. 外部样式表
 
+当同一种样式应用于多个页面,最好选择.
+可以通过改变一个文件来该表整个站点的外观
+在页面中用\<link>标签链接外部样式表:
+```html
+<head>
+<link rel = "stylesheet" type = "text/css"href="style.css"/>
+</head>
+```
+浏览器从style.css中读取样式声明
 
+2. 内部样式表
 
+把样式表放到\<head>区域,只能用到该页面中
+用\<style>标签插入:
+```html
+<style>
+	样式声明(如p{margin-left:10px;})
+	body{background-image:url("images/bg1.png");}
+</style>
+```
+3. 导入外部样式表
 
-
+在内部样式表的\<style>标签区域用@import命令导入外部样式表
+```html
+<style>
+	@import "外部样式表.css";
+</style>
+```
+4. 内嵌样式
+当样式只在一个元素上应用一次时使用
+`<p style="margin-left:20px;color:red">This is a paragragh.</p>`
 
 
 
