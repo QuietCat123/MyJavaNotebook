@@ -232,10 +232,48 @@ selector{
 当样式只在一个元素上应用一次时使用
 `<p style="margin-left:20px;color:red">This is a paragragh.</p>`
 
+## CSS常用选择器
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CSS选择器</title>
+<style type="text/css">
+/* 元素选择器 */
+p{
+	color:red;
+	font-size:18px;
+	text-align:left;
+}
+/* 类选择器.class */
+.p2{
+	color:green;
+}
+/* id选择器 */
+#p3{
+	color:blue;
+}
+h2,h5{
+	font-wight:bold;
+	color:red;
+}
+</style>
+</head>
+<body>
+<h2>静夜思</h2>
+<h5>——李白</h5>
+<p>床前明月光</p>
+<p class="p2">疑是地上霜</p>
+<p id="p3">举头望明月</p>
+<p>低头思故乡</p>
+</body>
+</html>
+```
+![enter description here][2]
 
-
-
-
+## CSS常用属性
+### 文本属性
 
 
 
@@ -243,3 +281,4 @@ selector{
 
 
   [1]: ./images/Web%E5%89%8D%E7%AB%AF%E6%8A%80%E6%9C%AF.jpg "Web前端技术"
+  [2]: ./images/CSS%E9%80%89%E6%8B%A9%E5%99%A8%E5%AE%9E%E4%BE%8B.png "CSS选择器实例"
