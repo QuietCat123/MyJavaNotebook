@@ -285,10 +285,60 @@ h2,h5{
 
 ![背景属性][5]
 
+# Java Script概述
+基于浏览器的脚本语言,无需编译就可以在浏览器中直接运行.
+基于JavaScript的第三方函数库:jQuery,Ext JS等.
+可以直接嵌入网页,也可以保存为.js文件
+## 语法基础
+### 数据类型
+对数据类型无严格要求……
+### 变量常量
+拥有动态类型
+```javascript
+var x; //声明x
+x = 100;
+x = "JavaScript"
+//数组声明
+//静态
+var array = ["a","b","c"]
+var array1 = new Array();
+var array2 = new Array(4);
+var array3 = new Array("Java",5,true,null);
+```
+### 运算符,控制语句基本与JAVA一致(
 
+## JavaScript事件
+事件是指文档或浏览器窗口与用户交互发生了特定的动作.
+如:
 
+![JavaScript部分事件][6]
 
+```html
+<标签 事件处理程序 = "函数名称(参数)">
+```
+## JavaScript函数
+声明函数语法:
+```JavaScript
+function 函数名称(参数列表)
+{
+	函数体
+}
+```
+声明函数的方法:
+* 内嵌式
+* 外部连接式
 
+### 内嵌式
+```html
+<head>
+	<script type="text/javascripts">
+	function funcname(参数列表)
+	{
+		函数体
+	}
+	</script>
+</head>
+```
 
 
 
@@ -301,3 +351,4 @@ h2,h5{
   [3]: ./images/1519911594187.jpg
   [4]: ./images/1519911786304.jpg
   [5]: ./images/1519911874170.jpg
+  [6]: ./images/scanner_20180301_215615.jpg
