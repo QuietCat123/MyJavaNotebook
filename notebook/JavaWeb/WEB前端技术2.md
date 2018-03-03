@@ -6,7 +6,7 @@ grammar_cjkRuby: true
 
 
 # jQuery与AJAX技术
-Query是一个快速、简洁的JavaScript框架
+jQuery是一个快速、简洁的JavaScript框架
 ## jQuery
 ```html
 <!DOCTYPE html>
