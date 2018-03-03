@@ -347,47 +347,6 @@ function 函数名称(参数列表)
 
 ## DOM对象……
 
-# jQuery与AJAX技术
-## jQuery
-```html
-<!DOCTYPE html>
-<html>
-<head>
-<meta content="text/html" charset="UTF-8" http-equiv="Content-Type">
-<script src="jquery/jquery-3.3.1.js" type="text/javascript"></script>
-<!--  以下是jquery程序段  -->
-<script>
-$(document).ready(function(){
-	$("p").click(function(){
-		$(this).hide();
-	})
-});
-</script>
-<title>第一个jquery程序</title>
-</head>
-<body>
-<p>如果你单击我我就会消失</p>
-</body>
-</html>
-```
-$(document)表示html文档对象,$(document).ready()方法只是$(document)的ready事件处理函数.在文档对象就绪时被触发
-$()时jQuery()方法的缩写,可以在DOM中搜索指定的选择器匹配的元素.,并引用该元素的jquery对对象.例如
-$("p")表示文档中\<p>元素,$("p").click()方法指\<P>的click事件处理函数
-$(this),这里指当前引用的HTML对象,hide()是隐藏当前对象.
-
-## jQuery选择器
-和CSS一样
-$("#id") 返回单个元素
-$("element") 返回集合元素
-$(".class") ……
-$("[property]") 选择所有属性名为property的元素
-全局选择器 "*","多个"
-
-
-
-
-
-
 
 
 
