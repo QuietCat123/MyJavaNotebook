@@ -18,7 +18,7 @@ grammar_cjkRuby: true
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.5.1</version>
+            <version>3.7.0</version>
             <configuration>
                 <source>1.8</source>
                 <target>1.8</target>
@@ -26,4 +26,13 @@ grammar_cjkRuby: true
         </plugin>
     </plugins>
 </build>
+
+<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
+<dependency>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.7.0</version>
+</dependency>
+
+
 ```
