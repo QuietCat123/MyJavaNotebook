@@ -3,7 +3,7 @@ title: 2018-3-29 依赖注入 Dependency Injection
 tags: 依赖注入
 grammar_cjkRuby: true
 ---
-## 依赖注入
+# 依赖注入
 为什么要有==依赖注入==（一种设计代码模式），因为我们要==控制反转==（设计代码的思路）。
 为什么==控制反转==。因为我们软件设计需要符合软件设计原则 ==依赖倒置==（设计代码原则），单一职责原则。
 
@@ -52,8 +52,10 @@ Product product = context.getBean("product",Product.class);
 
 Spring MVC应用,可以通过Spring Servlet来处理ApplicationContext
 
-### XML配置文件
+# Spring 控制反转容器的使用
+## XML配置文件
 导入其他配置文件的示例:
+```
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:aop="http://www.springframework.org/schema/aop"
@@ -65,13 +67,13 @@ Spring MVC应用,可以通过Spring Servlet来处理ApplicationContext
 		<import resource = "config.xml"/>
 		<import resource = "/resources/config3.xml"/>
 </beans>
-
-## Spring如何管理Bean和依赖关系
+```
+## 创建Bean实例
 ### 通过构造器创建一个bean实例
 ```
 <beans>...
 	<bean name="product" calss="app15a.bean.Product"/>
-<beans>
+</beans>
 
 //in java:
 Application context = new ClassPathXmlApplicationContext(
@@ -98,3 +100,22 @@ Application context = new ClassPathXmlApplicationContext(
 product product1 = context.getBean("calendar",Calendar.class);
 
 ```
+### Destroy Method的使用
+在bean中可以定义\<destroy-method>属性,指定需要执行的方法.
+
+### 向构造器传递参数
+……典型的Java Bean……
+```xml
+<bean name="featuredProduct" class="app15a.bean.Product">
+	<constructor-arg name="name" value="Ultimate Olive Oil"/>
+</bean>
+```
+或者可以使用index = n来传递参数
+
+### setter方式依赖注入 与 通过构造器方式注入
+\<constructor-arg name="" value=""/>标签将通过实现对应的构造方法注入
+\<property name="" value=""/>通过实例化对象后,调用setter方法实现传值
+
+注意两者中有ref= 属性,可以传递bean对象的引用
+
+
